@@ -1,0 +1,29 @@
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #f7f1e8;
+  border-top: 1rpx solid #ddd2c3;
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 10;
+}
+.item {
+  position: relative;
+  flex: 1;
+  text-align: center;
+  padding: 22rpx 0 18rpx;
+  color: #6f675e;
+  font-size: 26rpx;
+}
+.item.on { color: #24344d; font-weight: 600; }
+.dot {
+  position: absolute;
+  top: 16rpx;
+  right: 28%;
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background: #c23a2e;
+}

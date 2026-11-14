@@ -1,0 +1,101 @@
+<view class="page">
+  <view class="error-box" wx:if="{{error}}">{{error}}</view>
+  <view class="panel">
+    <text class="panel-title">告警指标</text>
+    <text class="help">关掉的指标不会推送。微信按止盈、止损、前高、破位、异动这几句发。</text>
+    <view class="field">
+      <text class="label">服务器地址</text>
+      <input class="input" value="{{serverBase}}" bindinput="onBase" placeholder="http://127.0.0.1:8787" />
+      <text class="help">开发者工具用 127.0.0.1。手机预览改成电脑的局域网地址，并在开发者工具里勾选不校验合法域名。</text>
+    </view>
+    <view class="check">
+      <text>止盈提醒</text>
+      <switch checked="{{alertTakeProfit}}" color="#24344d" data-key="alertTakeProfit" bindchange="onFlag" />
+    </view>
+    <view class="field">
+      <text class="label">止盈线 %</text>
+      <input class="input" type="digit" value="{{takeProfitPct}}" data-key="takeProfitPct" bindinput="onField" />
+      <text class="help">盈利已达这条线，建议分批止盈。默认 20。</text>
+    </view>
+    <view class="check">
+      <text>止损提醒</text>
+      <switch checked="{{alertStopLoss}}" color="#24344d" data-key="alertStopLoss" bindchange="onFlag" />
+    </view>
+    <view class="field">
+      <text class="label">止损线 %</text>
+      <input class="input" type="digit" value="{{stopLossPct}}" data-key="stopLossPct" bindinput="onField" />
+      <text class="help">亏损达到这条线，触发止损。默认 10。</text>
+    </view>
+    <view class="check">
+      <text>前高提醒</text>
+      <switch checked="{{alertNearHigh}}" color="#24344d" data-key="alertNearHigh" bindchange="onFlag" />
+    </view>
+    <view class="field">
+      <text class="label">前高范围 %</text>
+      <input class="input" type="digit" value="{{nearHighPct}}" data-key="nearHighPct" bindinput="onField" />
+      <text class="help">回到前期高点附近，注意压力。</text>
+    </view>
+    <view class="check">
+      <text>跌破 5 日线</text>
+      <switch checked="{{alertMa5}}" color="#24344d" data-key="alertMa5" bindchange="onFlag" />
+    </view>
+    <view class="check">
+      <text>跌破 20 日线</text>
+      <switch checked="{{alertMa20}}" color="#24344d" data-key="alertMa20" bindchange="onFlag" />
+    </view>
+    <text class="help">现价跌破已经走完的日线就提醒。今天这根 K 线不计入均线。</text>
+    <view class="check">
+      <text>单日异动</text>
+      <switch checked="{{alertDayMove}}" color="#24344d" data-key="alertDayMove" bindchange="onFlag" />
+    </view>
+    <view class="field">
+      <text class="label">单日涨跌 %</text>
+      <input class="input" type="digit" value="{{dayMovePct}}" data-key="dayMovePct" bindinput="onField" />
+      <text class="help">超过这个幅度，当天提醒一次。默认 5。</text>
+    </view>
+    <view class="row">
+      <view class="field">
+        <text class="label">套牢标记 %</text>
+        <input class="input" type="digit" value="{{underwaterMarkPct}}" data-key="underwaterMarkPct" bindinput="onField" />
+      </view>
+      <view class="field">
+        <text class="label">回本带宽 %</text>
+        <input class="input" type="digit" value="{{breakevenBandPct}}" data-key="breakevenBandPct" bindinput="onField" />
+      </view>
+    </view>
+    <view class="row">
+      <view class="field">
+        <text class="label">自动回撤 %</text>
+        <input class="input" type="digit" value="{{drawdownPct}}" data-key="drawdownPct" bindinput="onField" />
+      </view>
+      <view class="field">
+        <text class="label">提醒间隔（小时）</text>
+        <input class="input" type="digit" value="{{cooldownHours}}" data-key="cooldownHours" bindinput="onField" />
+      </view>
+    </view>
+    <view class="check">
+      <text>开盘前汇总还在提醒区的股票</text>
+      <switch checked="{{digestEnabled}}" color="#24344d" bindchange="onDigest" />
+    </view>
+    <text class="panel-title">微信推送</text>
+    <text class="help">用微信打开 PushPlus，扫码登录后复制 token。消息会直接进微信，不必先把小程序发布上线。</text>
+    <view class="field">
+      <text class="label">PushPlus Token</text>
+      <input class="input" value="{{pushplusToken}}" data-key="pushplusToken" bindinput="onField" />
+      <text class="help" data-url="https://www.pushplus.plus" bindtap="copy">复制 pushplus.plus 链接</text>
+    </view>
+    <view class="field">
+      <text class="label">Server酱 SendKey</text>
+      <input class="input" value="{{serverchanKey}}" data-key="serverchanKey" bindinput="onField" />
+      <text class="help" data-url="https://sct.ftqq.com" bindtap="copy">复制 sct.ftqq.com 链接</text>
+    </view>
+    <view class="field">
+      <text class="label">访问口令</text>
+      <input class="input" value="{{apiToken}}" data-key="apiToken" bindinput="onField" />
+      <text class="help">只在自己电脑上用可以留空。</text>
+    </view>
+    <button class="btn solid" bindtap="save" loading="{{saving}}" disabled="{{saving}}">保存设置</button>
+    <button class="btn" bindtap="testPush" style="margin-top: 16rpx;">发一条测试</button>
+  </view>
+  <tab-bar active="settings" />
+</view>

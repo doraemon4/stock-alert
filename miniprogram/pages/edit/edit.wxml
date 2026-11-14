@@ -1,0 +1,65 @@
+<view class="page">
+  <view class="panel">
+    <view class="field">
+      <text class="label">代码</text>
+      <input class="input" value="{{code}}" bindinput="onCode" bindblur="onBlurCode" placeholder="600519 或 hk00700" />
+      <view class="suggest" wx:if="{{results.length}}">
+        <view class="suggest-item" wx:for="{{results}}" wx:key="symbol" data-i="{{index}}" bindtap="pick">{{item.name}} {{item.market}} {{item.code}}</view>
+      </view>
+      <text class="help">{{hint}}</text>
+      <button class="btn" wx:if="{{recentHigh}}" bindtap="useHigh" style="margin-top: 12rpx;">用近半年最高 {{recentHigh.price}}</button>
+    </view>
+    <view class="field">
+      <text class="label">名称</text>
+      <input class="input" value="{{name}}" data-key="name" bindinput="onField" />
+    </view>
+    <view class="row">
+      <view class="field">
+        <text class="label">数量（股）</text>
+        <input class="input" type="digit" value="{{quantity}}" data-key="quantity" bindinput="onField" />
+      </view>
+      <view class="field">
+        <text class="label">投入金额</text>
+        <input class="input" type="digit" value="{{costAmount}}" data-key="costAmount" bindinput="onField" placeholder="一共花了多少" />
+      </view>
+    </view>
+    <view class="field">
+      <text class="label">成本价</text>
+      <input class="input" type="digit" value="{{costPrice}}" data-key="costPrice" bindinput="onField" />
+      <text class="help">金额和成本价填一个即可，另一个会跟着算。</text>
+    </view>
+    <view class="field">
+      <text class="label">前期高点</text>
+      <input class="input" type="digit" value="{{refHigh}}" data-key="refHigh" bindinput="onField" placeholder="你记得的那次高价" />
+      <text class="help">已经跌下来的，把那个高点填上。以后再靠近它，会提醒你卖。留空则只盯记下之后的新高。</text>
+    </view>
+    <view class="field">
+      <text class="label">卖出计划</text>
+      <textarea class="textarea" value="{{plan}}" maxlength="80" bindinput="onPlan" placeholder="例如：回到前高就卖，不再格局" />
+    </view>
+    <view class="check">
+      <text>这只股票单独设线</text>
+      <switch checked="{{custom}}" color="#24344d" bindchange="onCustom" />
+    </view>
+    <view class="row" wx:if="{{custom}}">
+      <view class="field">
+        <text class="label">止盈 %</text>
+        <input class="input" type="digit" value="{{takeProfitPct}}" data-key="takeProfitPct" bindinput="onField" placeholder="跟随全局" />
+      </view>
+      <view class="field">
+        <text class="label">止损 %</text>
+        <input class="input" type="digit" value="{{stopLossPct}}" data-key="stopLossPct" bindinput="onField" placeholder="跟随全局" />
+      </view>
+    </view>
+    <view class="field" wx:if="{{custom}}">
+      <text class="label">距前高 % 以内提醒</text>
+      <input class="input" type="digit" value="{{nearHighPct}}" data-key="nearHighPct" bindinput="onField" placeholder="跟随全局" />
+    </view>
+    <view class="check">
+      <text>开启提醒</text>
+      <switch checked="{{enabled}}" color="#24344d" bindchange="onEnabled" />
+    </view>
+    <button class="btn solid" bindtap="save" loading="{{saving}}" disabled="{{saving}}">保存</button>
+    <button class="btn" wx:if="{{id}}" bindtap="remove" style="margin-top: 16rpx;">删除</button>
+  </view>
+</view>

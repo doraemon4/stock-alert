@@ -1,0 +1,8 @@
+<view class="tabbar">
+  <view class="item {{active === 'home' ? 'on' : ''}}" data-key="home" bindtap="go">持仓</view>
+  <view class="item {{active === 'alerts' ? 'on' : ''}}" data-key="alerts" bindtap="go">
+    记录
+    <view class="dot" wx:if="{{fresh && active !== 'alerts'}}"></view>
+  </view>
+  <view class="item {{active === 'settings' ? 'on' : ''}}" data-key="settings" bindtap="go">设置</view>
+</view>

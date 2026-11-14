@@ -1,0 +1,47 @@
+<view class="page">
+  <view class="error-box" wx:if="{{error}}">{{error}}</view>
+  <view class="hero">
+    <text class="quiet">{{statusText}}</text>
+    <view class="hero-num {{summary.tone}}">{{summary.pnlText}}</view>
+    <text class="quiet">总盈亏</text>
+    <view class="stats">
+      <view class="stat"><text class="quiet">市值</text><text class="stat-v">{{summary.marketText}}</text></view>
+      <view class="stat"><text class="quiet">本金</text><text class="stat-v">{{summary.costText}}</text></view>
+      <view class="stat"><text class="quiet">收益率</text><text class="stat-v {{summary.tone}}">{{summary.pctText}}</text></view>
+    </view>
+  </view>
+
+  <view class="banner" wx:if="{{zoneCount}}">{{zoneCount}} 只到了你设的线。该卖就卖，别等它缩回去。</view>
+  <view class="banner" wx:if="{{quoteMissing}}">{{quoteMissing}} 只暂时没有报价。</view>
+
+  <view class="empty" wx:if="{{loaded && !positions.length && !error}}">
+    <text class="empty-title">先把舍不得卖的票记下来</text>
+    <text>填上股数、花了多少钱，还有你记得的那个高点。盈利到线、亏损到线，或者跌了几个月又涨回高点附近，微信会叫你卖。</text>
+  </view>
+
+  <view class="card" wx:for="{{positions}}" wx:key="id" data-id="{{item.id}}" bindtap="open">
+    <view class="bar bar-{{item.tone}}"></view>
+    <view class="card-top">
+      <view>
+        <view>
+          <text class="name">{{item.name}}</text>
+          <text class="badge">{{item.marketLabel}} {{item.code}}</text>
+          <text class="pill" wx:if="{{item.badge}}">{{item.badge}}</text>
+        </view>
+        <text class="meta">{{item.meta}}</text>
+      </view>
+      <view>
+        <view class="pnl {{item.pnlTone}}">{{item.pnlText}}</view>
+        <text class="meta {{item.pnlTone}}">{{item.pnlAmt}}</text>
+      </view>
+    </view>
+    <view class="meta">现价 {{item.priceText}} <text wx:if="{{item.showDay}}" class="{{item.dayTone}}">今日 {{item.dayText}}</text></view>
+    <text class="line" wx:for="{{item.lines}}" wx:for-item="line" wx:key="index">{{line}}</text>
+  </view>
+
+  <view class="actions">
+    <button class="btn" bindtap="check" loading="{{checking}}" disabled="{{checking}}">立即检查并推送</button>
+    <button class="btn solid" bindtap="add">记一笔持仓</button>
+  </view>
+  <tab-bar active="home" fresh="{{fresh}}" />
+</view>

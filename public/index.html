@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#24344d" />
+  <title>止盈提醒</title>
+  <style>
+    :root {
+      --bg: #e7dfd2;
+      --paper: #f7f1e8;
+      --ink: #1c1915;
+      --muted: #6f675e;
+      --line: #ddd2c3;
+      --navy: #24344d;
+      --up: #c23a2e;
+      --down: #1f7a4d;
+      --amber: #8a5a12;
+      --shadow: 0 12px 30px rgba(48, 32, 14, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 20px 16px 48px; }
+    header { margin-bottom: 16px; }
+    .eyebrow { margin: 0 0 4px; color: var(--muted); font-size: 13px; letter-spacing: 0.08em; }
+    h1 { margin: 0; font-size: 28px; font-weight: 650; letter-spacing: -0.03em; }
+    nav { display: flex; gap: 8px; margin: 16px 0; }
+    nav button, .btn {
+      border: 1px solid var(--navy);
+      background: transparent;
+      color: var(--navy);
+      border-radius: 8px;
+      padding: 8px 12px;
+    }
+    nav button[aria-current="page"], .btn.solid { background: var(--navy); color: #f7f1e8; }
+    .flash, .banner, .error-box {
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .flash { background: #e7efe8; color: #1d4a32; }
+    .flash.bad, .error-box { background: #f8e4df; color: #7a261c; }
+    .banner { background: #f4e6cf; color: #6d4a10; }
+    .hero, .card, .panel, .empty {
+      background: var(--paper);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+    }
+    .hero { padding: 18px 18px 14px; margin-bottom: 12px; }
+    .hero-num {
+      font-family: "Palatino Linotype", Palatino, "Songti SC", serif;
+      font-size: 46px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      margin: 8px 0 2px;
+    }
+    .quiet { color: var(--muted); font-size: 13px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+    .stat { border-top: 1px solid var(--line); padding-top: 8px; }
+    .stat b { display: block; font-weight: 600; }
+    .up { color: var(--up); }
+    .down { color: var(--down); }
+    .card {
+      width: 100%;
+      text-align: left;
+      border: 0;
+      border-left: 6px solid var(--line);
+      padding: 14px 14px 12px 12px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .tone-take { border-left-color: var(--up); }
+    .tone-stop { border-left-color: var(--down); }
+    .tone-high, .tone-even, .tone-move { border-left-color: var(--amber); }
+    .tone-break { border-left-color: var(--down); }
+    .card-top, .quote-row, .actions, .inline { display: flex; justify-content: space-between; gap: 12px; }
+    .name { font-size: 18px; font-weight: 650; }
+    .badge, .pill {
+      display: inline-block;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 22px;
+    }
+    .pill.hot { border-color: transparent; background: #f4e6cf; color: var(--amber); }
+    .pnl { font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 650; text-align: right; }
+    .meta, .quote-row, .line { color: var(--muted); font-size: 14px; }
+    .line { display: block; color: var(--ink); margin-top: 4px; }
+    .quote-row { margin-top: 8px; }
+    .actions { margin: 14px 0; }
+    .actions .btn { flex: 1; padding: 12px 10px; }
+    .empty, .panel { padding: 16px; margin-bottom: 12px; }
+    .empty h2, .panel h2 { margin: 0 0 8px; font-size: 18px; }
+    .field { margin-bottom: 12px; }
+    .field label, .help { display: block; }
+    .field label { font-size: 14px; margin-bottom: 4px; }
+    .help { color: var(--muted); font-size: 13px; margin-top: 4px; }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffdf9;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 16px;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    .suggest { list-style: none; margin: 6px 0 0; padding: 0; border: 1px solid var(--line); border-radius: 8px; background: #fff; }
+    .suggest button { width: 100%; text-align: left; border: 0; background: transparent; padding: 8px 10px; }
+    .suggest button:hover { background: #f4eee4; }
+    .check { display: flex; align-items: center; gap: 8px; }
+    .check input { width: auto; }
+    details { margin: 8px 0 14px; }
+    summary { cursor: pointer; color: var(--navy); }
+    .log { white-space: normal; }
+    .log .ok { color: var(--down); }
+    .log .bad { color: var(--up); }
+    footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 560px) {
+      .hero-num { font-size: 40px; }
+      .row-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">止盈提醒</p>
+      <h1 id="title">持仓</h1>
+    </header>
+    <nav>
+      <button type="button" data-act="tab" data-hash="#/" id="nav-home">持仓</button>
+      <button type="button" data-act="tab" data-hash="#/alerts" id="nav-alerts">记录</button>
+      <button type="button" data-act="tab" data-hash="#/settings" id="nav-settings">设置</button>
+    </nav>
+    <div id="flash"></div>
+    <main id="app"><p class="quiet">正在读取持仓…</p></main>
+    <footer>行情来自腾讯公开接口，只做个人买卖提醒，不是投资建议。价格可能有延迟。</footer>
+  </div>
+  <script>
+    const state = {
+      data: null,
+      error: "",
+      locked: false,
+      flash: "",
+      flashBad: false,
+      keepFlash: false,
+      form: null,
+      editId: "",
+      missing: false,
+      lookup: null,
+      suggest: [],
+      settingsForm: null,
+      busy: false
+    };
+    let searchTimer = 0;
+
+    const app = document.querySelector("#app");
+    const flashEl = document.querySelector("#flash");
+    const titleEl = document.querySelector("#title");
+
+    function esc(value) {
+      return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+    function money(n, sign) {
+      const v = Number(n);
+      if (!Number.isFinite(v)) return "--";
+      const prefix = v < 0 ? "-" : sign && v > 0 ? "+" : "";
+      const abs = Math.abs(v);
+      return abs >= 10000 ? prefix + (abs / 10000).toFixed(2) + "万" : prefix + abs.toFixed(2);
+    }
+    function pct(n) {
+      const v = Number(n);
+      if (!Number.isFinite(v)) return "--";
+      return (v > 0 ? "+" : "") + v.toFixed(2) + "%";
+    }
+    function price(n) {
+      const v = Number(n);
+      if (!(v > 0)) return "--";
+      return v < 2 ? v.toFixed(3) : v.toFixed(2);
+    }
+    function clock(value) {
+      if (!value) return "还没有检查";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "";
+      const p = (n) => String(n).padStart(2, "0");
+      return (date.getMonth() + 1) + "/" + date.getDate() + " " + p(date.getHours()) + ":" + p(date.getMinutes());
+    }
+    function trimCalc(n, digits) {
+      const v = Math.round(Number(n) * 10 ** digits) / 10 ** digits;
+      return String(v);
+    }
+    function routeName() {
+      const hash = location.hash || "#/";
+      if (hash.startsWith("#/alerts")) return "alerts";
+      if (hash.startsWith("#/settings")) return "settings";
+      if (hash.startsWith("#/edit")) return "edit";
+      return "home";
+    }
+    function editId() {
+      const matched = (location.hash || "").match(/^#\/edit\/([^/]+)$/);
+      return matched ? decodeURIComponent(matched[1]) : "";
+    }
+    function setFlash(text, bad) {
+      state.flash = text || "";
+      state.flashBad = Boolean(bad);
+    }
+    function paintChrome() {
+      const route = routeName();
+      const titles = { home: "持仓", alerts: "提醒记录", settings: "设置", edit: editId() ? "修改持仓" : "记一笔" };
+      titleEl.textContent = titles[route];
+      document.querySelectorAll("nav button").forEach((button) => {
+        const on = button.dataset.hash === "#/" ? route === "home" : location.hash.startsWith(button.dataset.hash);
+        if (on) button.setAttribute("aria-current", "page");
+        else button.removeAttribute("aria-current");
+      });
+      flashEl.innerHTML = state.flash ? `<div class="flash${state.flashBad ? " bad" : ""}">${esc(state.flash)}</div>` : "";
+    }
+
+    async function api(path, options = {}) {
+      const headers = { "content-type": "application/json" };
+      const token = localStorage.getItem("stockAlertToken") || "";
+      if (token) headers["x-token"] = token;
+      let res;
+      try {
+        res = await fetch(path, {
+          method: options.method || "GET",
+          headers,
+          body: options.body ? JSON.stringify(options.body) : undefined
+        });
+      } catch {
+        const error = new Error("连不上提醒服务");
+        error.status = 0;
+        throw error;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const error = new Error(data.error || "请求失败");
+        error.status = res.status;
+        throw error;
+      }
+      return data;
+    }
+
+    async function load() {
+      try {
+        state.data = await api("/api/bootstrap");
+        state.error = "";
+        state.locked = false;
+      } catch (error) {
+        state.locked = error.status === 401;
+        state.error = state.locked ? "" : error.message;
+      }
+    }
+
+    function blankForm() {
+      return {
+        code: "", name: "", quantity: "", costAmount: "", costPrice: "", refHigh: "",
+        plan: "", takeProfitPct: "", stopLossPct: "", nearHighPct: "",
+        enabled: true, lastCostEdit: "amount"
+      };
+    }
+    function formFromPosition(p) {
+      return {
+        code: p.code,
+        name: p.name === p.code ? "" : p.name,
+        quantity: String(p.quantity),
+        costAmount: String(p.costAmount),
+        costPrice: String(p.costPrice),
+        refHigh: p.refHigh ? String(p.refHigh) : "",
+        plan: p.plan || "",
+        takeProfitPct: p.takeProfitPct ?? "",
+        stopLossPct: p.stopLossPct ?? "",
+        nearHighPct: p.nearHighPct ?? "",
+        enabled: p.enabled !== false,
+        lastCostEdit: "price"
+      };
+    }
+    function openEditor() {
+      const id = editId();
+      state.editId = id;
+      state.lookup = null;
+      state.suggest = [];
+      const found = id ? (state.data?.positions || []).find((item) => item.id === id) : null;
+      state.missing = Boolean(id && !found);
+      state.form = found ? formFromPosition(found) : blankForm();
+    }
+    function ensureSettings() {
+      if (state.settingsForm) return;
+      const saved = state.data?.settings || {};
+      state.settingsForm = {
+        takeProfitPct: saved.takeProfitPct ?? 20,
+        stopLossPct: saved.stopLossPct ?? 10,
+        nearHighPct: saved.nearHighPct ?? 3,
+        breakevenBandPct: saved.breakevenBandPct ?? 2,
+        underwaterMarkPct: saved.underwaterMarkPct ?? 8,
+        drawdownPct: saved.drawdownPct ?? 15,
+        cooldownHours: saved.cooldownHours ?? 20,
+        dayMovePct: saved.dayMovePct ?? 5,
+        digestEnabled: saved.digestEnabled !== false,
+        alertTakeProfit: saved.alertTakeProfit !== false,
+        alertStopLoss: saved.alertStopLoss !== false,
+        alertNearHigh: saved.alertNearHigh !== false,
+        alertMa5: saved.alertMa5 !== false,
+        alertMa20: saved.alertMa20 !== false,
+        alertDayMove: saved.alertDayMove !== false,
+        pushplusToken: saved.pushplusToken || "",
+        serverchanKey: saved.serverchanKey || "",
+        apiToken: saved.apiToken || ""
+      };
+    }
+
+    function render() {
+      paintChrome();
+      if (state.locked) {
+        app.innerHTML = `<form class="panel" id="unlock-form">
+          <h2>要口令才能看持仓</h2>
+          <div class="field"><label for="unlock-token">访问口令</label>
+            <input id="unlock-token" name="token" type="text" autocomplete="off" />
+          </div>
+          <button class="btn solid" type="submit">连接</button>
+        </form>`;
+        return;
+      }
+      const route = routeName();
+      if (route === "alerts") app.innerHTML = renderAlerts();
+      else if (route === "settings") app.innerHTML = renderSettings();
+      else if (route === "edit") app.innerHTML = renderEdit();
+      else app.innerHTML = renderHome();
+    }
+
+    function renderHome() {
+      if (state.error && !state.data) {
+        return `<div class="error-box">${esc(state.error)}</div><button class="btn solid" type="button" data-act="retry">重试</button>`;
+      }
+      const data = state.data || { positions: [], summary: {}, meta: {} };
+      const summary = data.summary || {};
+      const direction = summary.direction === "up" ? "up" : summary.direction === "down" ? "down" : "";
+      const positions = data.positions || [];
+      const status = data.meta?.lastError || (data.meta?.lastCheckAt ? "最近检查 " + clock(data.meta.lastCheckAt) : "还没有自动检查");
+      const cards = positions.map((item) => {
+        const metrics = item.metrics || {};
+        const quote = item.quote || {};
+        const tone = metrics.paused ? "hold" : metrics.tone || "hold";
+        const badge = metrics.paused ? "暂停" : { stop: "止损", take: "止盈", high: "前高", even: "回本", break: "破位", move: "异动" }[tone] || "";
+        const meta = [
+          trimCalc(item.quantity, 4) + " 股",
+          "成本 " + price(item.costPrice)
+        ];
+        if (item.refHigh > 0) meta.push("前高 " + price(item.refHigh));
+        const lines = (metrics.lines || []).slice();
+        if (item.plan) lines.push("计划：" + item.plan);
+        const pnlTone = (metrics.pnlAmount || 0) > 0 ? "up" : (metrics.pnlAmount || 0) < 0 ? "down" : "";
+        const dayTone = (quote.changePct || 0) > 0 ? "up" : (quote.changePct || 0) < 0 ? "down" : "";
+        return `<article class="card tone-${tone}" tabindex="0" data-act="edit" data-id="${esc(item.id)}">
+          <div class="card-top">
+            <div>
+              <div><span class="name">${esc(item.name)}</span> <span class="badge">${esc(item.marketLabel)} ${esc(item.code)}</span> ${badge ? `<span class="pill hot">${esc(badge)}</span>` : ""}</div>
+              <div class="meta">${esc(meta.join(" · "))}</div>
+            </div>
+            <div>
+              <div class="pnl ${pnlTone}">${esc(pct(metrics.pnlPct))}</div>
+              <div class="meta ${pnlTone}" style="text-align:right">${esc(money(metrics.pnlAmount, true))}</div>
+            </div>
+          </div>
+          <div class="quote-row">
+            <span>现价 ${esc(price(quote.price))}</span>
+            ${quote.price ? `<span class="${dayTone}">今日 ${esc(pct(quote.changePct))}</span>` : ""}
+          </div>
+          ${lines.map((line) => `<span class="line">${esc(line)}</span>`).join("")}
+        </article>`;
+      }).join("");
+      const empty = positions.length ? "" : `<section class="empty">
+        <h2>先把舍不得卖的票记下来</h2>
+        <p>填上股数、花了多少钱，还有你记得的那个高点。盈利到线、亏损到线，或者跌了几个月又涨回高点附近，微信会叫你卖。</p>
+      </section>`;
+      const zone = summary.zoneCount ? `<div class="banner">${summary.zoneCount} 只到了你设的线。该卖就卖，别等它缩回去。</div>` : "";
+      const missing = summary.quoteMissing ? `<div class="banner">${summary.quoteMissing} 只暂时没有报价。</div>` : "";
+      const err = state.error ? `<div class="error-box">${esc(state.error)}</div>` : "";
+      return `${err}<section class="hero">
+        <div class="quiet">${esc(status)}</div>
+        <div class="hero-num ${direction}">${esc(money(summary.pnlAmount, true))}</div>
+        <div class="quiet">总盈亏</div>
+        <div class="stats">
+          <div class="stat"><span class="quiet">市值</span><b>${esc(money(summary.marketValue))}</b></div>
+          <div class="stat"><span class="quiet">本金</span><b>${esc(money(summary.costAmount))}</b></div>
+          <div class="stat"><span class="quiet">收益率</span><b class="${direction}">${esc(pct(summary.pnlPct))}</b></div>
+        </div>
+      </section>${zone}${missing}${empty}${cards}
+      <div class="actions">
+        <button class="btn" type="button" data-act="check" id="check-btn">立即检查并推送</button>
+        <button class="btn solid" type="button" data-act="add" id="add-btn">记一笔持仓</button>
+      </div>`;
+    }
+
+    function renderEdit() {
+      if (state.missing) return `<div class="error-box">没有这只股票</div>`;
+      const form = state.form || blankForm();
+      const custom = form.takeProfitPct !== "" || form.stopLossPct !== "" || form.nearHighPct !== "";
+      return `<form class="panel" id="edit-form">
+        <div id="form-error"></div>
+        <div class="field">
+          <label for="code">代码</label>
+          <input id="code" name="code" type="text" autocomplete="off" placeholder="600519 或 hk00700" value="${esc(form.code)}" />
+          <ul class="suggest" id="suggest" hidden></ul>
+          <p class="help" id="lookup-hint">输入代码后可以查出名称，以及近半年最高价。</p>
+          <button class="btn" type="button" id="use-high" data-act="use-high" hidden>用这个高点</button>
+        </div>
+        <div class="field"><label for="name">名称</label><input id="name" name="name" type="text" value="${esc(form.name)}" /></div>
+        <div class="row-2">
+          <div class="field"><label for="quantity">数量（股）</label><input id="quantity" name="quantity" type="text" inputmode="decimal" value="${esc(form.quantity)}" /></div>
+          <div class="field"><label for="costAmount">投入金额</label><input id="costAmount" name="costAmount" type="text" inputmode="decimal" placeholder="一共花了多少" value="${esc(form.costAmount)}" /></div>
+        </div>
+        <div class="field"><label for="costPrice">成本价</label><input id="costPrice" name="costPrice" type="text" inputmode="decimal" value="${esc(form.costPrice)}" /><p class="help">金额和成本价填一个即可，另一个会跟着算。</p></div>
+        <div class="field">
+          <label for="refHigh">前期高点</label>
+          <input id="refHigh" name="refHigh" type="text" inputmode="decimal" placeholder="你记得的那次高价" value="${esc(form.refHigh)}" />
+          <p class="help">已经跌下来的，把那个高点填上。以后价格再靠近它，会提醒你卖。留空的话，只能等记下之后再创新高、回撤，再涨回去才提醒。</p>
+        </div>
+        <div class="field"><label for="plan">卖出计划</label><textarea id="plan" name="plan" maxlength="80" placeholder="例如：回到前高就卖，不再格局">${esc(form.plan)}</textarea></div>
+        <details ${custom ? "open" : ""}>
+          <summary>这只股票单独的线</summary>
+          <div class="row-2" style="margin-top:10px">
+            <div class="field"><label for="takeProfitPct">止盈 %</label><input id="takeProfitPct" name="takeProfitPct" type="text" inputmode="decimal" placeholder="跟随全局" value="${esc(form.takeProfitPct)}" /></div>
+            <div class="field"><label for="stopLossPct">止损 %</label><input id="stopLossPct" name="stopLossPct" type="text" inputmode="decimal" placeholder="跟随全局" value="${esc(form.stopLossPct)}" /></div>
+          </div>
+          <div class="field"><label for="nearHighPct">距前高 % 以内提醒</label><input id="nearHighPct" name="nearHighPct" type="text" inputmode="decimal" placeholder="跟随全局" value="${esc(form.nearHighPct)}" /></div>
+        </details>
+        <label class="check"><input name="enabled" type="checkbox" ${form.enabled ? "checked" : ""} /> 开启提醒</label>
+        <div class="actions">
+          <button class="btn solid" type="submit" id="save-btn">保存</button>
+          ${state.editId ? `<button class="btn" type="button" data-act="delete" id="delete-btn">删除</button>` : ""}
+        </div>
+      </form>`;
+    }
+
+    function renderAlerts() {
+      const alerts = state.data?.alerts || [];
+      if (!alerts.length) {
+        return `<section class="empty"><h2>还没有提醒</h2><p>止盈、止损、前高、跌破均线或单日异动，会记在这里。配好微信推送后，同一条也会发到微信。</p></section>`;
+      }
+      return alerts.map((item) => `<article class="card log">
+        <div class="card-top"><strong>${esc(item.title)}</strong><span class="quiet">${esc(clock(item.createdAt))}</span></div>
+        ${String(item.body || "").split("\n").map((line) => `<span class="line">${esc(line)}</span>`).join("")}
+        <p class="${item.delivered ? "ok" : "bad"}">${esc(item.delivered ? "已发微信" : (item.error || "未推送"))}</p>
+      </article>`).join("");
+    }
+
+    function renderSettings() {
+      ensureSettings();
+      const form = state.settingsForm;
+      const field = (name, label, help) => `<div class="field"><label for="${name}">${label}</label><input id="${name}" name="${name}" type="text" inputmode="decimal" value="${esc(form[name])}" />${help ? `<p class="help">${help}</p>` : ""}</div>`;
+      const flag = (name, label) => `<label class="check"><input name="${name}" type="checkbox" ${form[name] ? "checked" : ""} /> ${label}</label>`;
+      return `<form class="panel" id="settings-form">
+        <h2>告警指标</h2>
+        <p class="help">关掉的指标不会推送。微信里按这几句发：止盈、止损、前高、破位、异动。</p>
+        ${flag("alertTakeProfit", "止盈提醒")}
+        ${field("takeProfitPct", "止盈线 %", "盈利已达这条线，建议分批止盈。默认 20")}
+        ${flag("alertStopLoss", "止损提醒")}
+        ${field("stopLossPct", "止损线 %", "亏损达到这条线，触发止损。默认 10")}
+        ${flag("alertNearHigh", "前高提醒")}
+        ${field("nearHighPct", "前高范围 %", "回到你填的前期高点附近，注意压力")}
+        ${flag("alertMa5", "跌破 5 日线")}
+        ${flag("alertMa20", "跌破 20 日线")}
+        <p class="help">现价跌破已经走完的日线就提醒：趋势转弱。今天这根 K 线不计入均线。</p>
+        ${flag("alertDayMove", "单日异动")}
+        ${field("dayMovePct", "单日涨跌 %", "单日涨跌超过这个幅度，当天提醒一次。默认 5")}
+        <h2>回本</h2>
+        <div class="row-2">
+          ${field("underwaterMarkPct", "套牢标记 %", "曾经亏到这里，才算套牢")}
+          ${field("breakevenBandPct", "回本带宽 %", "回到成本上下这个范围就提醒")}
+        </div>
+        <div class="row-2">
+          ${field("drawdownPct", "自动回撤 %", "没填前高时，从记下后的高点回撤这么多，再涨回才提醒")}
+          ${field("cooldownHours", "同一条最短间隔（小时）", "避免价格在线上来回时连着响。单日异动按交易日只发一次")}
+        </div>
+        <label class="check"><input name="digestEnabled" type="checkbox" ${form.digestEnabled ? "checked" : ""} /> 每个交易日开盘前，把还停在提醒区的股票汇总发一次</label>
+        <h2>微信推送</h2>
+        <p class="help">小程序订阅消息要你每次点授权，个人用起来很容易漏。这里用 PushPlus：微信扫码登录后复制 token，消息会直接进微信。也可以改用 Server酱。</p>
+        <div class="field"><label for="pushplusToken">PushPlus Token</label><input id="pushplusToken" name="pushplusToken" type="text" autocomplete="off" value="${esc(form.pushplusToken)}" /><p class="help"><a href="https://www.pushplus.plus" target="_blank" rel="noreferrer">打开 pushplus.plus</a></p></div>
+        <div class="field"><label for="serverchanKey">Server酱 SendKey</label><input id="serverchanKey" name="serverchanKey" type="text" autocomplete="off" value="${esc(form.serverchanKey)}" /><p class="help"><a href="https://sct.ftqq.com" target="_blank" rel="noreferrer">打开 sct.ftqq.com</a></p></div>
+        <div class="field"><label for="apiToken">访问口令</label><input id="apiToken" name="apiToken" type="text" autocomplete="off" value="${esc(form.apiToken)}" /><p class="help">只在自己电脑上用可以留空。手机走公网时再设。</p></div>
+        <div class="actions">
+          <button class="btn solid" type="submit" id="save-settings">保存设置</button>
+          <button class="btn" type="button" data-act="test" id="test-push">发一条测试</button>
+        </div>
+      </form>`;
+    }
+
+    function paintSuggest() {
+      const box = document.querySelector("#suggest");
+      if (!box) return;
+      if (!state.suggest.length) {
+        box.hidden = true;
+        box.innerHTML = "";
+        return;
+      }
+      box.hidden = false;
+      box.innerHTML = state.suggest.map((item, index) =>
+        `<li><button type="button" data-act="pick" data-i="${index}">${esc(item.name)} ${esc(item.market)} ${esc(item.code)}</button></li>`
+      ).join("");
+    }
+    function paintHint(errorText) {
+      const hint = document.querySelector("#lookup-hint");
+      const button = document.querySelector("#use-high");
+      if (!hint) return;
+      if (errorText) {
+        hint.textContent = errorText;
+        if (button) button.hidden = true;
+        return;
+      }
+      const info = state.lookup;
+      if (!info) {
+        hint.textContent = "输入代码后可以查出名称，以及近半年最高价。";
+        if (button) button.hidden = true;
+        return;
+      }
+      let text = info.name + " 现价 " + price(info.price);
+      if (info.recentHigh) {
+        const dist = ((info.price - info.recentHigh.price) / info.recentHigh.price) * 100;
+        const gap = dist >= 0 ? "已高出 " + dist.toFixed(1) + "%" : "还差 " + Math.abs(dist).toFixed(1) + "%";
+        text += "，近半年最高 " + price(info.recentHigh.price) + "（" + info.recentHigh.date + "），" + gap;
+        if (button) button.hidden = false;
+      } else if (button) button.hidden = true;
+      hint.textContent = text;
+    }
+    function setInput(name, value) {
+      const input = document.querySelector(`[name="${name}"]`);
+      if (input && document.activeElement !== input) input.value = value;
+    }
+    function syncCost(key) {
+      const form = state.form;
+      if (!form) return;
+      if (key === "costAmount") form.lastCostEdit = "amount";
+      if (key === "costPrice") form.lastCostEdit = "price";
+      const mode = key === "costPrice" ? "price" : key === "costAmount" ? "amount" : form.lastCostEdit;
+      const quantity = Number(form.quantity);
+      if (!(quantity > 0)) return;
+      if (mode === "price") {
+        const costPrice = Number(form.costPrice);
+        if (costPrice > 0) {
+          form.costAmount = trimCalc(costPrice * quantity, 2);
+          setInput("costAmount", form.costAmount);
+        }
+      } else {
+        const amount = Number(form.costAmount);
+        if (amount > 0) {
+          form.costPrice = trimCalc(amount / quantity, 4);
+          setInput("costPrice", form.costPrice);
+        }
+      }
+    }
+    function formError(text) {
+      const box = document.querySelector("#form-error");
+      if (box) box.innerHTML = text ? `<div class="error-box">${esc(text)}</div>` : "";
+    }
+    async function lookupCode(code) {
+      if (!code) return;
+      try {
+        const info = await api("/api/lookup?code=" + encodeURIComponent(code));
+        state.lookup = info;
+        state.suggest = [];
+        paintSuggest();
+        if (state.form && (!state.form.name || state.form.name === state.form.code)) {
+          state.form.name = info.name;
+          setInput("name", info.name);
+        }
+        paintHint();
+      } catch (error) {
+        state.lookup = null;
+        paintHint(error.message);
+      }
+    }
+    async function searchCode(query) {
+      if (!query || query.trim().length < 1) {
+        state.suggest = [];
+        paintSuggest();
+        return;
+      }
+      try {
+        state.suggest = await api("/api/search?q=" + encodeURIComponent(query.trim()));
+        paintSuggest();
+      } catch {
+        state.suggest = [];
+        paintSuggest();
+      }
+    }
+
+    async function doSave() {
+      const form = state.form;
+      if (!(Number(form.quantity) > 0)) return formError("数量要大于 0");
+      if (!(Number(form.costAmount) > 0) && !(Number(form.costPrice) > 0)) return formError("请填写投入金额或成本价");
+      formError("");
+      const optional = (value) => value === "" ? null : Number(value);
+      const body = {
+        code: form.code.trim(),
+        name: form.name.trim(),
+        quantity: Number(form.quantity),
+        costAmount: form.costAmount === "" ? null : Number(form.costAmount),
+        costPrice: form.costPrice === "" ? null : Number(form.costPrice),
+        refHigh: form.refHigh,
+        plan: form.plan,
+        takeProfitPct: optional(form.takeProfitPct),
+        stopLossPct: optional(form.stopLossPct),
+        nearHighPct: optional(form.nearHighPct),
+        enabled: form.enabled
+      };
+      const path = state.editId ? "/api/positions/" + encodeURIComponent(state.editId) : "/api/positions";
+      const result = await api(path, { method: state.editId ? "PUT" : "POST", body });
+      await load();
+      const created = result.check?.alerts || [];
+      if (created.length && !created[0].delivered) setFlash("已记下。这只已经在提醒区，但还没配微信推送，先写进了记录。");
+      else if (created.length) setFlash("已记下，并发了微信提醒");
+      else setFlash("已记下");
+      state.keepFlash = true;
+      location.hash = "#/";
+      render();
+    }
+    async function doDelete() {
+      if (!confirm("删除这只股票？已发出的记录还留着。")) return;
+      await api("/api/positions/" + encodeURIComponent(state.editId), { method: "DELETE" });
+      await load();
+      setFlash("已删除");
+      state.keepFlash = true;
+      location.hash = "#/";
+      render();
+    }
+    async function doCheck() {
+      if (!confirm("会按最新价再算一遍。已经在提醒区里的股票会再发一条微信。")) return;
+      const result = await api("/api/check", { method: "POST" });
+      await load();
+      if (result.error) setFlash(result.error, true);
+      else if (result.alerts?.length) {
+        setFlash(result.alerts[0].delivered ? `发了 ${result.alerts.length} 条微信` : `记了 ${result.alerts.length} 条，但还没配微信推送`);
+      } else setFlash("现在没有股票在提醒区");
+      render();
+    }
+    async function doSaveSettings() {
+      const form = state.settingsForm;
+      const num = (key) => Number(form[key]);
+      const result = await api("/api/settings", {
+        method: "PUT",
+        body: {
+          takeProfitPct: num("takeProfitPct"),
+          stopLossPct: num("stopLossPct"),
+          nearHighPct: num("nearHighPct"),
+          breakevenBandPct: num("breakevenBandPct"),
+          underwaterMarkPct: num("underwaterMarkPct"),
+          drawdownPct: num("drawdownPct"),
+          cooldownHours: num("cooldownHours"),
+          dayMovePct: num("dayMovePct"),
+          digestEnabled: form.digestEnabled,
+          alertTakeProfit: form.alertTakeProfit,
+          alertStopLoss: form.alertStopLoss,
+          alertNearHigh: form.alertNearHigh,
+          alertMa5: form.alertMa5,
+          alertMa20: form.alertMa20,
+          alertDayMove: form.alertDayMove,
+          pushplusToken: form.pushplusToken,
+          serverchanKey: form.serverchanKey,
+          apiToken: form.apiToken
+        }
+      });
+      localStorage.setItem("stockAlertToken", (form.apiToken || "").trim());
+      state.settingsForm = null;
+      await load();
+      const created = result.check?.alerts || [];
+      setFlash(created.length ? "设置已保存，并记了一条新提醒" : "设置已保存");
+      render();
+    }
+    async function doTest() {
+      await doSaveSettings();
+      try {
+        await api("/api/notify/test", { method: "POST" });
+        await load();
+        setFlash("测试已发往微信");
+        render();
+      } catch (error) {
+        setFlash(error.message, true);
+        render();
+      }
+    }
+
+    function onInput(event) {
+      const el = event.target;
+      if (!el.name) return;
+      if (routeName() === "settings" && state.settingsForm) {
+        state.settingsForm[el.name] = el.type === "checkbox" ? el.checked : el.value;
+        return;
+      }
+      if (!state.form || !el.closest("#edit-form")) return;
+      if (el.type === "checkbox") state.form[el.name] = el.checked;
+      else state.form[el.name] = el.value;
+      if (el.name === "quantity" || el.name === "costAmount" || el.name === "costPrice") syncCost(el.name);
+      if (el.name === "code") {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => searchCode(el.value), 300);
+      }
+    }
+    async function onClick(event) {
+      const button = event.target.closest("[data-act]");
+      if (!button) return;
+      const act = button.dataset.act;
+      if (act === "tab") {
+        location.hash = button.dataset.hash;
+        return;
+      }
+      if (act === "add") {
+        location.hash = "#/edit";
+        return;
+      }
+      if (act === "edit") {
+        location.hash = "#/edit/" + button.dataset.id;
+        return;
+      }
+      if (act === "retry") {
+        await load();
+        render();
+        return;
+      }
+      if (act === "pick") {
+        const item = state.suggest[Number(button.dataset.i)];
+        if (!item || !state.form) return;
+        state.form.code = item.code;
+        state.form.name = item.name;
+        setInput("code", item.code);
+        setInput("name", item.name);
+        state.suggest = [];
+        paintSuggest();
+        await lookupCode(item.symbol || item.code);
+        return;
+      }
+      if (act === "use-high" && state.lookup?.recentHigh && state.form) {
+        state.form.refHigh = String(state.lookup.recentHigh.price);
+        setInput("refHigh", state.form.refHigh);
+        return;
+      }
+      if (state.busy) return;
+      state.busy = true;
+      try {
+        if (act === "check") await doCheck();
+        else if (act === "delete") await doDelete();
+        else if (act === "test") await doTest();
+      } catch (error) {
+        setFlash(error.message, true);
+        render();
+      } finally {
+        state.busy = false;
+      }
+    }
+
+    document.body.addEventListener("input", onInput);
+    document.body.addEventListener("change", onInput);
+    document.body.addEventListener("click", (event) => {
+      onClick(event).catch((error) => {
+        setFlash(error.message, true);
+        render();
+      });
+    });
+    document.body.addEventListener("mousedown", (event) => {
+      if (event.target.closest("[data-act=pick]")) event.preventDefault();
+    });
+    document.body.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (state.busy) return;
+      state.busy = true;
+      const run = event.target.id === "edit-form"
+        ? doSave
+        : event.target.id === "settings-form"
+          ? doSaveSettings
+          : event.target.id === "unlock-form"
+            ? async () => {
+              localStorage.setItem("stockAlertToken", document.querySelector("#unlock-token").value.trim());
+              await load();
+              if (state.locked) setFlash("口令不对", true);
+              render();
+            }
+            : null;
+      if (!run) {
+        state.busy = false;
+        return;
+      }
+      run().catch((error) => {
+        if (event.target.id === "edit-form") formError(error.message);
+        else {
+          setFlash(error.message, true);
+          render();
+        }
+      }).finally(() => {
+        state.busy = false;
+      });
+    });
+    document.body.addEventListener("focusout", (event) => {
+      if (event.target?.name === "code" && state.form) {
+        setTimeout(() => lookupCode(state.form.code.trim()), 200);
+      }
+    });
+    window.addEventListener("hashchange", () => {
+      const route = routeName();
+      if (!state.keepFlash) state.flash = "";
+      state.keepFlash = false;
+      if (route === "edit") openEditor();
+      if (route !== "settings") state.settingsForm = null;
+      render();
+    });
+
+    load().then(() => {
+      if (routeName() === "edit") openEditor();
+      render();
+    });
+  </script>
+</body>
+</html>
